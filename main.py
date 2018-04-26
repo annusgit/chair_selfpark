@@ -136,23 +136,39 @@ def flip_horizontal(source):
     return img
 
 
+def detect_lines(source):
+
+    current_frame = cv2.cvtColor(source, cv2.COLOR_BGR2GRAY)
+    # detector = cv2.LineSegmentDetector()
+    detector = cv2.createLineSegmentDetector()
+    lines = detector.detect(current_frame)[0]
+    return detector.drawSegments(current_frame, lines)
+
+
+
 def main():
     """
         We will use this function to apply some transformations on our camera feed
     :return:
     """
-    cam = cv2.VideoCapture(0)
+
+    cam = cv2.VideoCapture(1)
+    # while cam.read()[1].empty:
+    #     pass
+
     kernel_1 = np.asarray([[-1,-2,-1],[0,0,0],[1,2,1]])
     kernel_2 = np.transpose(kernel_1)
     while True:
-        frame = np.flip(cam.read()[1], axis=1)
+        frame = cam.read()[1]
+        # frame = np.flip(cam.read()[1], axis=1)
         trans_frame_1 = cv2.filter2D(src=frame, ddepth=-1, kernel=kernel_1)
         trans_frame_2 = cv2.filter2D(src=frame, ddepth=-1, kernel=kernel_2)
         combined_trans = np.add(trans_frame_1, trans_frame_2)
         edge_enhanced_image = np.add(frame, combined_trans)
         # show_frame = np.hstack((frame, combined_trans))
         show_frame = np.hstack((frame, combined_trans))
-        cv2.imshow('Video feed', show_frame)
+        # cv2.imshow('Video feed', show_frame)
+        cv2.imshow('Video feed', detect_lines(frame))
         if cv2.waitKey(1) == 27: # esc key
             break
     pass
