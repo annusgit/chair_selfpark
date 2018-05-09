@@ -8,9 +8,15 @@
 from __future__ import print_function
 from __future__ import division
 
+import time
 import cv2
 import numpy as np
 
+import OpenGL
+from OpenGL.GL import *
+from OpenGL.GLU import *
+import pygame
+from pygame.locals import *
 
 def get_diff_image(prev_prev, prev, current):
 
@@ -142,11 +148,11 @@ def detect_lines(source):
     # detector = cv2.LineSegmentDetector()
     detector = cv2.createLineSegmentDetector()
     lines = detector.detect(current_frame)[0]
-    return detector.drawSegments(current_frame, lines)
+    return detector.drawSegments(source, lines)
 
 
 
-def main():
+def function():
     """
         We will use this function to apply some transformations on our camera feed
     :return:
@@ -174,6 +180,167 @@ def main():
     pass
 
 
+def detect_lines_hough(source):
+    current_frame = cv2.cvtColor(source, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(current_frame, 75, 150)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 50)
+    # print(lines)
+    if lines is not None:
+        for line in lines:
+            x0, y0, x1, y1 = line[0]
+            cv2.line(source, (x0, y0), (x1, y1), (0, 255, 0), 3)
+    return source
+
+
+def no_grid_function():
+
+    verticies = (
+        (1, -1, -1),
+        (1, 1, -1),
+        (-1, 1, -1),
+        (-1, -1, -1),
+        (1, -1, 1),
+        (1, 1, 1),
+        (-1, -1, 1),
+        (-1, 1, 1)
+    )
+
+    edges = (
+        (0, 1),
+        (0, 3),
+        (0, 4),
+        (2, 1),
+        (2, 3),
+        (2, 7),
+        (6, 3),
+        (6, 4),
+        (6, 7),
+        (5, 1),
+        (5, 4),
+        (5, 7)
+    )
+
+    def Cube():
+        glBegin(GL_LINES)
+        for edge in edges:
+            for vertex in edge:
+                glVertex3fv(verticies[vertex])
+        glEnd()
+
+    def thisone():
+        pygame.init()
+        display = (800, 600)
+        pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+
+        gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
+
+        glTranslatef(0.0, 0.0, -5)
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+            glRotatef(1, 3, 1, 1)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            Cube()
+            pygame.display.flip()
+            pygame.time.wait(10)
+
+    thisone()
+
+
+def grid():
+    scr_width = 1200; scr_height = 700; grid_spacing = 50; line_width = 1; delay = 0.05
+    pygame.init()
+    pygame.font.init()
+    screen = pygame.display.set_mode([scr_width,scr_height])
+    pygame.display.set_caption('localize that shit!')
+    colors = {'white': (255, 255, 255), 'black': (0, 0, 0), 'red': (255, 0, 0),
+              'green': (0, 255, 0), 'blue': (0, 0, 255)}
+    screen.fill(colors['black'])
+
+    # get all the vertices for our localization grid
+    localization_grid = []
+    for col in range(1, scr_width // grid_spacing):
+        for row in range(1, scr_height // grid_spacing):
+            # the first two points are for the column and the other two are for the row
+            localization_grid.append([(col * grid_spacing, 0), (col * grid_spacing, scr_height),
+                                      (0, row * grid_spacing), (scr_width, row * grid_spacing)])
+    localization_grid = np.asarray(localization_grid)
+    over = False
+    while not over:
+        # get some events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_q):
+                over = True
+            elif event.type == pygame.KEYDOWN:
+                # let's see which key was pressed
+                key_pressed = event.key
+
+        # now draw the grid
+        for points in localization_grid[:,]:
+            pygame.draw.lines(screen, colors['white'], False, [points[0], points[1]], line_width)
+            pygame.draw.lines(screen, colors['white'], False, [points[2], points[3]], line_width)
+        pygame.display.flip()
+        time.sleep(delay)
+
+
+def images_for_dataset():
+
+    import os
+    import shutil
+
+    cam = cv2.VideoCapture(1)
+    save_folder = 'dataset/images/fool'
+    if os.path.exists(save_folder):
+        shutil.rmtree(save_folder)
+    os.mkdir(save_folder)
+    counter = 0
+
+    while True:
+        frame = cam.read()[1]
+        # handle key events
+        key_pressed = cv2.waitKey(1)
+        if key_pressed == 27:
+            break
+
+        elif key_pressed == 32:
+            counter += 1
+            cv2.imwrite(os.path.join(save_folder, '{}.jpg'.format(counter)), frame)
+            print('your image {} has been saved'.format(os.path.join(save_folder, '{}.jpg'.format(counter))))
+
+        cv2.imshow('Video feed', frame)
+
+
+def main():
+
+    cam = cv2.VideoCapture(1)
+    while True:
+        # detections = detect_lines_hough(cam.read()[1])
+        frame = cam.read()[1]
+        # resized_frame = cv2.resize(frame, (128, 128))
+        # handle key events
+        key_pressed = cv2.waitKey(1)
+        if key_pressed == 27:
+            break
+        # show the frames
+
+        cv2.imshow('Video feed', frame)
+
+    # another_one()
+    # grid()
+    pass
+
+
+def imageman():
+    size = 128
+    image = cv2.imread('/home/annus/PycharmProjects/instruments_chair_project/dataset/images/IMG-20180427-00082.jpg')
+    image = cv2.resize(image, (size, size))
+    cv2.imshow('this', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
