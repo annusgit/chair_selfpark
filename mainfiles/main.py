@@ -8,15 +8,15 @@
 from __future__ import print_function
 from __future__ import division
 
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from pygame.locals import *
+import OpenGL
+import pygame
 import time
 import cv2
 import numpy as np
 
-import OpenGL
-from OpenGL.GL import *
-from OpenGL.GLU import *
-import pygame
-from pygame.locals import *
 
 def get_diff_image(prev_prev, prev, current):
 
@@ -251,23 +251,26 @@ def no_grid_function():
     thisone()
 
 
-def grid():
-    scr_width = 1200; scr_height = 700; grid_spacing = 50; line_width = 1; delay = 0.05
+def block_grid():
+    scr_width = 1200; scr_height = 700
+    grid_spacing_vertical = scr_height//2
+    grid_spacing_horizontal = scr_width//2
+    line_width = 2; delay = 0.05
     pygame.init()
     pygame.font.init()
     screen = pygame.display.set_mode([scr_width,scr_height])
-    pygame.display.set_caption('localize that shit!')
+    pygame.display.set_caption('localizeman')
     colors = {'white': (255, 255, 255), 'black': (0, 0, 0), 'red': (255, 0, 0),
               'green': (0, 255, 0), 'blue': (0, 0, 255)}
-    screen.fill(colors['black'])
+    screen.fill(colors['white'])
 
     # get all the vertices for our localization grid
     localization_grid = []
-    for col in range(1, scr_width // grid_spacing):
-        for row in range(1, scr_height // grid_spacing):
+    for col in range(1, scr_width // grid_spacing_horizontal):
+        for row in range(1, scr_height // grid_spacing_vertical):
             # the first two points are for the column and the other two are for the row
-            localization_grid.append([(col * grid_spacing, 0), (col * grid_spacing, scr_height),
-                                      (0, row * grid_spacing), (scr_width, row * grid_spacing)])
+            localization_grid.append([(col * grid_spacing_horizontal, 0), (col * grid_spacing_horizontal, scr_height),
+                                      (0, row * grid_spacing_vertical), (scr_width, row * grid_spacing_vertical)])
     localization_grid = np.asarray(localization_grid)
     over = False
     while not over:
@@ -281,11 +284,10 @@ def grid():
 
         # now draw the grid
         for points in localization_grid[:,]:
-            pygame.draw.lines(screen, colors['white'], False, [points[0], points[1]], line_width)
-            pygame.draw.lines(screen, colors['white'], False, [points[2], points[3]], line_width)
+            pygame.draw.lines(screen, colors['black'], False, [points[0], points[1]], line_width)
+            pygame.draw.lines(screen, colors['black'], False, [points[2], points[3]], line_width)
         pygame.display.flip()
         time.sleep(delay)
-
 
 def images_for_dataset():
 
@@ -314,9 +316,9 @@ def images_for_dataset():
         cv2.imshow('Video feed', frame)
 
 
-def main():
+def simplecamfeed():
 
-    cam = cv2.VideoCapture(1)
+    cam = cv2.VideoCapture(0)
     while True:
         # detections = detect_lines_hough(cam.read()[1])
         frame = cam.read()[1]
@@ -344,7 +346,7 @@ def imageman():
 
 
 if __name__ == '__main__':
-    main()
+    block_grid()
 
 
 
