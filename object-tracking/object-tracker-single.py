@@ -1,6 +1,7 @@
 
 
 # Import the required modules
+from __future__ import print_function
 from __future__ import division
 from collections import deque
 import argparse as ap
@@ -20,22 +21,22 @@ def run(source=0, dispLoc=False):
 
     # If Camera Device is not opened, exit the program
     if not cam.isOpened():
-        print "Video device or file couldn't be opened"
+        print("Video device or file couldn't be opened")
         exit()
     
-    print "Press key `p` to pause the video to start tracking"
+    print("Press key `p` to pause the video to start tracking")
     while True:
         # Retrieve an image and Display it.
         retval, img = cam.read()
         img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
-            print "Cannot capture frame device"
+            print("Cannot capture frame device")
             exit()
         key = cv2.waitKey(1)
         if (key == ord('p')):
             break
         elif key == 27:
-            print 'exiting now!'
+            print('exiting now!')
             exit(0)
         # cv2.namedWindow("Cam Feed", cv2.WINDOW_NORMAL)
         cv2.namedWindow('Cam Feed')
@@ -52,7 +53,7 @@ def run(source=0, dispLoc=False):
     points = get_points.run(img) 
 
     if not points:
-        print "ERROR: No object to be tracked."
+        print("ERROR: No object to be tracked.")
         exit()
     
     # cv2.namedWindow("Cam Feed", cv2.WINDOW_NORMAL)
@@ -64,13 +65,13 @@ def run(source=0, dispLoc=False):
     tracker = dlib.correlation_tracker()
     # Provide the tracker the initial position of the object
     tracker.start_track(img, dlib.rectangle(*points[0]))
-	
+
     while True:
         # Read frame from device or file
         retval, img = cam.read()
         img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
-            print "Cannot capture frame device | CODE TERMINATING :("
+            print("Cannot capture frame device | CODE TERMINATING :(")
             exit()
         # Update the tracker  
         tracker.update(img)
@@ -80,7 +81,7 @@ def run(source=0, dispLoc=False):
         pt1 = (int(rect.left()), int(rect.top()))
         pt2 = (int(rect.right()), int(rect.bottom()))
         cv2.rectangle(img, pt1, pt2, (255, 255, 255), 3)
-        # print "Object tracked at [{}, {}]".format(pt1, pt2)
+        # print("Object tracked at [{}, {}]".format(pt1, pt2))
         if False: #dispLoc:
             loc = (int(rect.left()), int(rect.top()-20))
             txt = "Object tracked at [{}, {}]".format(pt1, pt2)
@@ -105,22 +106,22 @@ def cam_with_grid(kwargs):
     #
     # If Camera Device is not opened, exit the program
     if not cam.isOpened():
-        print "Video device or file couldn't be opened"
+        print("Video device or file couldn't be opened")
         exit()
 
-    print "Press key `p` to pause the video to start tracking"
+    print("Press key `p` to pause the video to start tracking")
     while True:
         # Retrieve an image and Display it.
         retval, img = cam.read()
         img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
-            print "Cannot capture frame device"
+            print("Cannot capture frame device")
             exit()
         key = cv2.waitKey(1)
         if (key == ord('p')):
             break
         elif key == 27:
-            print 'exiting now!'
+            print('exiting now!')
             exit(0)
         # cv2.namedWindow("Cam Feed", cv2.WINDOW_NORMAL)
         cv2.namedWindow('Cam Feed')
@@ -136,7 +137,7 @@ def cam_with_grid(kwargs):
     points = get_points.run(img)
 
     if not points:
-        print "ERROR: No object to be tracked."
+        print("ERROR: No object to be tracked.")
         exit()
 
     # cv2.namedWindow("Cam Feed", cv2.WINDOW_NORMAL)
@@ -186,7 +187,7 @@ def cam_with_grid(kwargs):
         retval, img = cam.read()
         img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
-            print "Cannot capture frame device | CODE TERMINATING :("
+            print("Cannot capture frame device | CODE TERMINATING :(")
             exit()
         # Update the tracker
         tracker.update(img)
@@ -196,8 +197,8 @@ def cam_with_grid(kwargs):
         pt1 = (int(rect.left()), int(rect.top()))
         pt2 = (int(rect.right()), int(rect.bottom()))
         cv2.rectangle(img, pt1, pt2, (255, 255, 255), 3)
-        # print "********************************************"
-        # print "Object tracked at [{}, {}]".format(pt1, pt2)
+        # print("********************************************")
+        # print("Object tracked at [{}, {}]".format(pt1, pt2))
         if False: #dispLoc:
             loc = (int(rect.left()), int(rect.top()-20))
             txt = "Object tracked at [{}, {}]".format(pt1, pt2)
@@ -222,8 +223,8 @@ def cam_with_grid(kwargs):
         center = ((pt1[0]+pt2[0])/2, (pt1[1]+pt2[1])/2)
         # scale them
         center = map(int, (center[0]/640*scr_width, center[1]/480*scr_height))
-        # print "position on grid at {}".format(center)
-        # print "********************************************"
+        # print("position on grid at {}".format(center))
+        # print("********************************************")
         # the following is the center
         pygame.draw.circle(screen, colors['blue'], center, 4)
         pygame.display.update()
@@ -263,22 +264,22 @@ def optical_flow(kwargs):
 
     # If Camera Device is not opened, exit the program
     if not cam.isOpened():
-        print "Video device or file couldn't be opened"
+        print("Video device or file couldn't be opened")
         exit()
 
-    print "Press key `p` to pause the video to start tracking"
+    print("Press key `p` to pause the video to start tracking")
     while True:
         # Retrieve an image and Display it.
         retval, img = cam.read()
         # img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
-            print "Cannot capture frame device"
+            print("Cannot capture frame device")
             exit()
         key = cv2.waitKey(1)
         if (key == ord('p')):
             break
         elif key == 27:
-            print 'exiting now!'
+            print('exiting now!')
             exit(0)
         # cv2.namedWindow("Cam Feed", cv2.WINDOW_NORMAL)
         cv2.namedWindow('Cam Feed')
@@ -294,7 +295,7 @@ def optical_flow(kwargs):
     points = get_points.run(img)
 
     if not points:
-        print "ERROR: No object to be tracked."
+        print("ERROR: No object to be tracked.")
         exit()
 
     # cv2.namedWindow("Cam Feed", cv2.WINDOW_NORMAL)
@@ -345,7 +346,7 @@ def optical_flow(kwargs):
         retval, img = cam.read()
         # img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
-            print "Cannot capture frame device | CODE TERMINATING :("
+            print("Cannot capture frame device | CODE TERMINATING :(")
             exit()
         # Update the tracker
         tracker.update(img)
@@ -355,8 +356,8 @@ def optical_flow(kwargs):
         pt1 = (int(rect.left()), int(rect.top()))
         pt2 = (int(rect.right()), int(rect.bottom()))
         cv2.rectangle(img, pt1, pt2, (255, 255, 255), 3)
-        # print "********************************************"
-        # print "Object tracked at [{}, {}]".format(pt1, pt2)
+        # print("********************************************")
+        # print("Object tracked at [{}, {}]".format(pt1, pt2))
         if False: #dispLoc:
             loc = (int(rect.left()), int(rect.top()-20))
             txt = "Object tracked at [{}, {}]".format(pt1, pt2)
@@ -388,13 +389,13 @@ def optical_flow(kwargs):
                     elif key_pressed == pygame.K_SPACE:
                         state = 'idle'
         # send or not?
-        # print counter
+        # print(counter)
         if bluetooth_use:
             counter += 1
             if counter >= 2:
                 sock.send(state)
                 counter = 0
-            # print counter, state
+            # print(counter, state)
             # print("you sent: {}".format(message))
 
         # now draw the grid, with the center of the chair or target as well
@@ -406,11 +407,12 @@ def optical_flow(kwargs):
         # drive here
         normalized_position = (cart_pos[0]-scr_width/2, cart_pos[1]-scr_height/2)
         position_in_quadrant = get_quadrant(normalized_position)
-        print "position on grid at {} >> {}".format(normalized_position, position_in_quadrant)
+        log = "position on grid at {} >> {}".format(normalized_position, position_in_quadrant)
+        print(log)
 
         ########################################################################################33
 
-        # print "********************************************"
+        # print("********************************************")
         # the following is the center
         pygame.display.update()
         pygame.display.flip()
@@ -511,7 +513,7 @@ def ball_detect(frame, buffer_size, color):
             center_x += pts[i][0]
             center_y += pts[i][1]
 
-    return (int(center_x/len(pts)), int(center_y/len(pts)))
+    return center
 
 
 def ball_track(kwargs):
@@ -538,7 +540,7 @@ def ball_track(kwargs):
 
     # If Camera Device is not opened, exit the program
     if not cam.isOpened():
-        print "Video device or file couldn't be opened"
+        print("Video device or file couldn't be opened")
         exit()
 
     # now initialize pygame and grid
@@ -547,7 +549,7 @@ def ball_track(kwargs):
     grid_spacing_horizontal = scr_width//2
     line_width = 2; delay = 0.5
     pygame.init()
-    # pygame.font.init()
+    pygame.font.init()
     screen = pygame.display.set_mode([scr_width,scr_height])
     pygame.display.set_caption('Localization Grid')
     colors = {'white': (255, 255, 255), 'black': (0, 0, 0), 'red': (255, 0, 0),
@@ -568,28 +570,30 @@ def ball_track(kwargs):
         pygame.draw.lines(screen, colors['black'], False, [points[0], points[1]], line_width)
         pygame.draw.lines(screen, colors['black'], False, [points[2], points[3]], line_width)
 
-    ###################################################################
+    ########################buffer_size###########################################
     # now open the camera and start the grid
     over = False
     counter = 0
     state = "idle"
+    angle = 0.0
     while not over:
         # Read frame from device or file
         retval, img = cam.read()
         # img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
-            print "Cannot capture frame device | CODE TERMINATING :("
+            print("Cannot capture frame device | CODE TERMINATING :(")
             exit()
         # Update the tracker
         center = ball_detect(frame=img, buffer_size=buffer_size, color=color)
         cv2.circle(img, center, 5, (0, 0, 255), -1)
 
-        # print "********************************************"
-        # print "Object tracked at [{}, {}]".format(center)
+        # print("********************************************")
+        # print("Object tracked at [{}, {}]".format(center))
         cv2.imshow("Cam Feed", img)
 
         # get some events
         # message = 'idle'
+        clear_screen(screen=screen, line_width=line_width, localization_grid=localization_grid)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 over = True
@@ -598,47 +602,45 @@ def ball_track(kwargs):
                 key_pressed = event.key
                 if key_pressed == pygame.K_q or key_pressed == pygame.K_ESCAPE:
                     over = True
+                # clear screen?
+                elif key_pressed == pygame.K_c:
+                    clear_screen(screen=screen, line_width=line_width, localization_grid=localization_grid)
                 # bluetooth events
-                if bluetooth_use:
-                    if key_pressed == pygame.K_UP:
-                        state = 'up'
-                    elif key_pressed == pygame.K_DOWN:
-                        state = 'down'
-                    elif key_pressed == pygame.K_RIGHT:
-                        state = 'right'
-                    elif key_pressed == pygame.K_LEFT:
-                        state = 'left'
-                    elif key_pressed == pygame.K_SPACE:
-                        state = 'idle'
+                elif bluetooth_use:
+                    state = manned_vehicle(key_pressed, state)
+
         # send or not?
-        # print counter
+        # print(counter)
         if bluetooth_use:
             counter += 1
             if counter >= 2:
                 sock.send(state)
+                angle = sock.recv(64)
                 counter = 0
-            # print counter, state
+            # print(counter, state)
             # print("you sent: {}".format(message))
 
         # now draw the grid, with the center of the chair or target as well
         if center != None and len(center) == 2:
-            cart_pos = (center[0]/2, center[1]/2)
+            cart_pos = (center[0], center[1])
             cart_pos = map(int, (cart_pos[0]/640*scr_width, cart_pos[1]/480*scr_height))
             pygame.draw.circle(screen, colors['blue'], cart_pos, 4)
 
             ########################################################################################33
             # drive here
-            normalized_position = (cart_pos[0]-scr_width/2, cart_pos[1]-scr_height/2)
+            normalized_position = (cart_pos[0]-scr_width/2, -(cart_pos[1]-scr_height/2))
             position_in_quadrant = get_quadrant(normalized_position)
-            print "position on grid at {} >> {}".format(normalized_position, position_in_quadrant)
+            log = "position on grid at {} >> {}; current angle = {}".format(normalized_position,
+                                                                            position_in_quadrant, angle)
+            print(log)
 
             ########################################################################################33
 
-        # print "********************************************"
+        # print("********************************************")
         # the following is the center
         pygame.display.update()
         pygame.display.flip()
-        # time.sleep(delay)
+        # time.sleep(0.1)
 
         # Continue until the user presses ESC key
         key_pressed = cv2.waitKey(1)
@@ -651,12 +653,25 @@ def ball_track(kwargs):
     pass
 
 
+def clear_screen(screen, line_width, localization_grid):
+    white = (255, 255, 255)
+    black = (0, 0, 0)
+    screen.fill(white)
+
+    # draw the localization grid
+    for points in localization_grid[:, ]:
+        pygame.draw.lines(screen, black, False, [points[0], points[1]], line_width)
+        pygame.draw.lines(screen, black, False, [points[2], points[3]], line_width)
+
+    pass
+
+
 def get_quadrant(cart_position):
     # global position on the grid
-    scr_center_x = 0#650/2
-    scr_center_y = 0#600/2
-    x, y = cart_position
+    scr_center_x = 0
+    scr_center_y = 0
 
+    x, y = cart_position
     if x >= scr_center_x and y < scr_center_y:
         position = 'Quad_1'
         return position
@@ -671,10 +686,24 @@ def get_quadrant(cart_position):
         return position
 
 
-def drive():
-
+def drive(location, angle, desired_loc=(0,0)):
+    diff = desired_loc-location
 
     pass
+
+
+def manned_vehicle(key_pressed, state):
+    if key_pressed == pygame.K_UP:
+        state = 'up'
+    elif key_pressed == pygame.K_DOWN:
+        state = 'down'
+    elif key_pressed == pygame.K_RIGHT:
+        state = 'right'
+    elif key_pressed == pygame.K_LEFT:
+        state = 'left'
+    elif key_pressed == pygame.K_SPACE:
+        state = 'idle'
+    return state
 
 
 if __name__ == "__main__":
