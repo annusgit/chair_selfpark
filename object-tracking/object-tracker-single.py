@@ -12,6 +12,7 @@ import pygame
 import time
 import dlib
 import cv2
+import os
 import get_points
 
 
@@ -544,17 +545,20 @@ def ball_track(kwargs):
         exit()
 
     # now initialize pygame and grid
-    scr_width = 650; scr_height = 600
-    grid_spacing_vertical = scr_height//2
-    grid_spacing_horizontal = scr_width//2
+    scr_width = 640; scr_height = 640
+    grid_spacing_vertical = 40#scr_height//2
+    grid_spacing_horizontal = 40#scr_width//2
     line_width = 2; delay = 0.5
     pygame.init()
     pygame.font.init()
+    myfont = pygame.font.SysFont(None, 20)
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '40,40'
     screen = pygame.display.set_mode([scr_width,scr_height])
     pygame.display.set_caption('Localization Grid')
     colors = {'white': (255, 255, 255), 'black': (0, 0, 0), 'red': (255, 0, 0),
-              'green': (0, 255, 0), 'blue': (0, 0, 255)}
+              'green': (0, 255, 0), 'blue': (0, 0, 255), '_blue': (100, 0, 200), 'other': (125, 125, 125)}
     screen.fill(colors['white'])
+    points_to_draw = []
 
     # get all the vertices for our localization grid
     localization_grid = []
@@ -564,11 +568,14 @@ def ball_track(kwargs):
             localization_grid.append([(col * grid_spacing_horizontal, 0), (col * grid_spacing_horizontal, scr_height),
                                       (0, row * grid_spacing_vertical), (scr_width, row * grid_spacing_vertical)])
     localization_grid = np.asarray(localization_grid)
-
-    # draw it only once
-    for points in localization_grid[:, ]:
-        pygame.draw.lines(screen, colors['black'], False, [points[0], points[1]], line_width)
-        pygame.draw.lines(screen, colors['black'], False, [points[2], points[3]], line_width)
+    # draw the grid
+    for points in localization_grid[:,]:
+        if points[0][0] == scr_width//2 or points[2][1] == scr_height//2: #(scr_width//grid_spacing_horizontal)//2:
+            this_color = colors['black']
+        else:
+            this_color = colors['_blue']
+        pygame.draw.lines(screen, this_color, False, [points[0], points[1]], line_width)
+        pygame.draw.lines(screen, this_color, False, [points[2], points[3]], line_width)
 
     ########################buffer_size###########################################
     # now open the camera and start the grid
@@ -576,10 +583,13 @@ def ball_track(kwargs):
     counter = 0
     state = "idle"
     angle = 0.0
+    normalized_position = (0, 0)
+    window = cv2.namedWindow('Cam Feed')
+    cv2.moveWindow("Cam Feed", 700, 40)
     while not over:
         # Read frame from device or file
         retval, img = cam.read()
-        # img = cv2.flip(img,1) # flip horizontally for correct orientation
+        img = cv2.flip(img,1) # flip horizontally for correct orientation
         if not retval:
             print("Cannot capture frame device | CODE TERMINATING :(")
             exit()
@@ -593,7 +603,10 @@ def ball_track(kwargs):
 
         # get some events
         # message = 'idle'
-        clear_screen(screen=screen, line_width=line_width, localization_grid=localization_grid)
+        clear_screen(screen=screen, line_width=line_width,
+                     grid_spacing_horizontal=grid_spacing_horizontal,
+                     grid_spacing_vertical=grid_spacing_vertical,
+                     localization_grid=localization_grid)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 over = True
@@ -604,7 +617,10 @@ def ball_track(kwargs):
                     over = True
                 # clear screen?
                 elif key_pressed == pygame.K_c:
-                    clear_screen(screen=screen, line_width=line_width, localization_grid=localization_grid)
+                    clear_screen(screen=screen, line_width=line_width,
+                                 grid_spacing_horizontal=grid_spacing_horizontal,
+                                 grid_spacing_vertical=grid_spacing_vertical,
+                                 localization_grid=localization_grid)
                 # bluetooth events
                 elif bluetooth_use:
                     state = manned_vehicle(key_pressed, state)
@@ -624,20 +640,32 @@ def ball_track(kwargs):
         if center != None and len(center) == 2:
             cart_pos = (center[0], center[1])
             cart_pos = map(int, (cart_pos[0]/640*scr_width, cart_pos[1]/480*scr_height))
-            pygame.draw.circle(screen, colors['blue'], cart_pos, 4)
+            points_to_draw.append(cart_pos)
+            for i in range(len(points_to_draw)-1):
+                pygame.draw.circle(screen, colors['blue'], points_to_draw[i], 4)
+                pygame.draw.line(screen, colors['red'], points_to_draw[i], points_to_draw[i+1])
+            pygame.draw.circle(screen, colors['green'], points_to_draw[-1], 4)
 
+        if len(points_to_draw) > 5:
+            points_to_draw.pop(0)
             ########################################################################################33
             # drive here
             normalized_position = (cart_pos[0]-scr_width/2, -(cart_pos[1]-scr_height/2))
             position_in_quadrant = get_quadrant(normalized_position)
             log = "position on grid at {} >> {}; current angle = {}".format(normalized_position,
                                                                             position_in_quadrant, angle)
-            print(log)
+            # print(log)
 
             ########################################################################################33
 
         # print("********************************************")
         # the following is the center
+        textsurface = myfont.render('position: {}, angle: {} degrees'.format(normalized_position,
+                                                                             angle), True, colors['red'])
+        screen.blit(textsurface, (5, 5)) # (cart_pos[0]-20, cart_pos[1]-5)
+        # textsurface = myfont.render('(0, 0)', True, colors['red'])
+        # screen.blit(textsurface, (int(scr_width/2)-5, int(scr_height/2)-5))
+
         pygame.display.update()
         pygame.display.flip()
         # time.sleep(0.1)
@@ -653,15 +681,23 @@ def ball_track(kwargs):
     pass
 
 
-def clear_screen(screen, line_width, localization_grid):
-    white = (255, 255, 255)
-    black = (0, 0, 0)
-    screen.fill(white)
+def clear_screen(screen, line_width, grid_spacing_horizontal, grid_spacing_vertical, localization_grid):
+    scr_width = 640; scr_height = 640
+    colors = {'white': (255, 255, 255), 'black': (0, 0, 0), 'red': (255, 0, 0),
+              'green': (0, 255, 0), 'blue': (0, 0, 255), '_blue': (100, 0, 200), 'other': (125, 125, 125)}
+    screen.fill(colors['white'])
 
     # draw the localization grid
-    for points in localization_grid[:, ]:
-        pygame.draw.lines(screen, black, False, [points[0], points[1]], line_width)
-        pygame.draw.lines(screen, black, False, [points[2], points[3]], line_width)
+    for points in localization_grid[:,]:
+        # print(scr_width // grid_spacing_horizontal, scr_height // grid_spacing_vertical)
+        # print(idx)
+        if points[0][0] == scr_width//2 or points[2][1] == scr_height//2: #(scr_width//grid_spacing_horizontal)//2:
+            # print(idx)
+            this_color = colors['black']
+        else:
+            this_color = colors['_blue']
+        pygame.draw.lines(screen, this_color, False, [points[0], points[1]], line_width)
+        pygame.draw.lines(screen, this_color, False, [points[2], points[3]], line_width)
 
     pass
 
