@@ -24,7 +24,7 @@ def run(source=0, dispLoc=False):
     if not cam.isOpened():
         print("Video device or file couldn't be opened")
         exit()
-    
+
     print("Press key `p` to pause the video to start tracking")
     while True:
         # Retrieve an image and Display it.
@@ -49,19 +49,19 @@ def run(source=0, dispLoc=False):
 
     cv2.destroyWindow("Cam Feed")
 
-    # Co-ordinates of objects to be tracked 
+    # Co-ordinates of objects to be tracked
     # will be stored in a list named `points`
-    points = get_points.run(img) 
+    points = get_points.run(img)
 
     if not points:
         print("ERROR: No object to be tracked.")
         exit()
-    
+
     # cv2.namedWindow("Cam Feed", cv2.WINDOW_NORMAL)
     cv2.namedWindow('Cam Feed')
     cv2.imshow("Cam Feed", img)
 
-    # Initial co-ordinates of the object to be tracked 
+    # Initial co-ordinates of the object to be tracked
     # Create the tracker object
     tracker = dlib.correlation_tracker()
     # Provide the tracker the initial position of the object
@@ -74,9 +74,9 @@ def run(source=0, dispLoc=False):
         if not retval:
             print("Cannot capture frame device | CODE TERMINATING :(")
             exit()
-        # Update the tracker  
+        # Update the tracker
         tracker.update(img)
-        # Get the position of the object, draw a 
+        # Get the position of the object, draw a
         # bounding box around it and display it.
         rect = tracker.get_position()
         pt1 = (int(rect.left()), int(rect.top()))
@@ -754,9 +754,3 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
     func = eval(args['function'])
     func(args)
-
-
-
-
-
-
